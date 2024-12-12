@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avoid the Falling Blocks</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            background-color: black;
+            overflow: hidden;
+            border: 2px solid white;
+            border-radius: 10px;
+        }
+        #player {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            background-color: blue;
+            border-radius: 5px;
+            transform: translateX(-50%);
+        }
+        .block {
+            position: absolute;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background-color: red;
+        }
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #instructions {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Avoid the Falling Blocks</h1>
+    <div id="instructions">
+        Use the left and right arrow keys to move your blue square and dodge the falling red blocks. 
+        Try to survive as long as you can and see how high you can score!
+    </div>
+    <div id="game-container">
+        <div id="player"></div>
+    </div>
+    <div id="score">Score: 0</div>
+
+    <script>
+        const gameContainer = document.getElementById("game-container");
+        const player = document.getElementById("player");
+        const scoreDisplay = document.getElementById("score");
+        let score = 0;
+        let isGameOver = false;
+
+        // Move player
+        document.addEventListener("keydown", (e) => {
+            const playerLeft = parseInt(window.getComputedStyle(player).getPropertyValue("left"));
+            if (e.key === "ArrowLeft" && playerLeft > 0) {
+                player.style.left = `${playerLeft - 20}px`;
+            } else if (e.key === "ArrowRight" && playerLeft < gameContainer.clientWidth - 30) {
+                player.style.left = `${playerLeft + 20}px`;
+            }
+        });
+
+        function createBlock() {
+            const block = document.createElement("div");
+            block.classList.add("block");
+
+            // Random horizontal position
+            const blockLeft = Math.random() * (gameContainer.clientWidth - 30);
+            block.style.left = `${blockLeft}px`;
+            gameContainer.appendChild(block);
+
+            let blockInterval = setInterval(() => {
+                const blockTop = parseInt(window.getComputedStyle(block).getPropertyValue("top"));
+                const playerLeft = parseInt(window.getComputedStyle(player).getPropertyValue("left"));
+                const playerTop = parseInt(window.getComputedStyle(player).getPropertyValue("top"));
+
+                // Move block down
+                block.style.top = `${blockTop + 5}px`;
+
+                // Check for collision
+                if (
+                    blockTop + 30 >= playerTop &&
+                    blockLeft + 25 > playerLeft &&
+                    blockLeft < playerLeft + 25
+                ) {
+                    alert("Game Over! Final Score: " + score);
+                    clearInterval(blockInterval);
+                    isGameOver = true;
+                    gameContainer.innerHTML = "";
+                    score = 0;
+                    scoreDisplay.textContent = "Score: 0";
+                    return;
+                }
+
+                // Remove block if it goes out of bounds
+                if (blockTop > gameContainer.clientHeight) {
+                    clearInterval(blockInterval);
+                    block.remove();
+                    if (!isGameOver) {
+                        score++;
+                        scoreDisplay.textContent = `Score: ${score}`;
+                    }
+                }
+            }, 50);
+        }
+
+        // Generate blocks at intervals
+        setInterval(() => {
+            if (!isGameOver) {
+                createBlock();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
